@@ -165,11 +165,10 @@ export function generarHTMLFinal(datos: InvitacionDatos, tema: TemaConfig): stri
   // Definimos de forma segura la visibilidad inicial de las secciones en base al paquete
   const isSectionActive = (secName: string) => seccionesActivas.includes(secName);
 
-  // Tipo de pantalla de apertura ("carta"): normalmente fijo por tema, pero el tema
-  // "personalizado" permite elegirlo manualmente por invitación.
+  // Tipo de pantalla de apertura: cualquier invitación puede elegir desde el editor
   const tipoAperturaEfectivo: "sobre" | "cortina" | "tarjeta" =
-    tema.id === "personalizado" && datos.personalizacion?.tipoApertura
-      ? datos.personalizacion.tipoApertura
+    datos.tipoApertura
+      ? datos.tipoApertura
       : ["mariposas", "floral-acuarela", "boho-chic", "coquette-pink", "coquette-luxe"].includes(tema.id)
         ? "sobre"
         : ["celestial", "princesa-elegante", "neon"].includes(tema.id)
@@ -1261,7 +1260,7 @@ export function generarHTMLFinal(datos: InvitacionDatos, tema: TemaConfig): stri
         'vintage-garden': ['🌸', '🌹', '🍃', '🦋']
       };
 
-      const simbolosOverride = ${(tema.id === "personalizado" && datos.personalizacion?.simbolosCaida && datos.personalizacion.simbolosCaida.length > 0) ? JSON.stringify(datos.personalizacion.simbolosCaida) : 'null'};
+      const simbolosOverride = ${(datos.simbolosCaida && datos.simbolosCaida.length > 0) ? JSON.stringify(datos.simbolosCaida) : 'null'};
       const simbolos = simbolosOverride || simbolosPorTema['${tema.id}'] || ['✨', '🌸', '🍃'];
 
       function crearParticula() {

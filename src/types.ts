@@ -45,7 +45,12 @@ export interface InvitacionDatos {
   /** Orden personalizado de las secciones de contenido (todas menos "apertura"/"cierre",
    *  que siempre quedan fijas al inicio y al final). Ver getOrdenSeccionesEfectivo en data.ts. */
   ordenSecciones?: string[];
-  /** Overrides de tipografía/color/apertura para invitaciones 100% a la medida.
+  /** Tipo de animación de apertura, aplicable a cualquier tema. */
+  tipoApertura?: "sobre" | "cortina" | "tarjeta";
+  /** Set de emojis para la lluvia decorativa (ver "Efecto de Animación de Caída").
+   *  Solo aplica cuando esa animación está encendida (mostrarAnimacionCaida !== false). */
+  simbolosCaida?: string[];
+  /** Overrides de tipografía/color para invitaciones 100% a la medida.
    *  Solo tiene efecto cuando `tema` es "personalizado" (ver generarHTMLFinal). */
   personalizacion?: {
     fontHeading?: string;
@@ -53,10 +58,6 @@ export interface InvitacionDatos {
     fontCursive?: string;
     /** Id de una paleta en PALETAS_COLOR_PERSONALIZADO (data.ts). */
     paletaColor?: string;
-    tipoApertura?: "sobre" | "cortina" | "tarjeta";
-    /** Set de emojis para la lluvia decorativa (ver "Efecto de Animación de Caída").
-     *  Solo aplica cuando esa animación está encendida (mostrarAnimacionCaida !== false). */
-    simbolosCaida?: string[];
   };
 }
 
