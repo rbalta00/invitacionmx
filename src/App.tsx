@@ -2289,6 +2289,61 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* TIPO DE APERTURA Y SÍMBOLOS DE LA LLUVIA */}
+                <div className="border-t border-slate-200 pt-6">
+                  <div className="p-4 bg-purple-50/20 border border-purple-100 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between border-t border-purple-100/60 pt-3">
+                      <div className="pr-3">
+                        <span className="block text-xs font-bold text-slate-800">
+                          Tipo de Apertura
+                        </span>
+                        <span className="block text-[11px] text-slate-500 leading-normal mt-0.5">
+                          Elige cómo se abre la invitación: tarjeta, sobre o cortina.
+                        </span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mt-3">
+                      {TIPOS_APERTURA.map(t => (
+                        <button
+                          key={t.id}
+                          onClick={() => setDatos(prev => ({ ...prev, tipoApertura: t.id }))}
+                          className={`text-left p-2 rounded-lg border-2 transition cursor-pointer text-center ${(datos.tipoApertura || "tarjeta") === t.id ? "border-indigo-500 bg-indigo-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
+                        >
+                          <span className="block text-xs font-bold text-slate-700">{t.nombre}</span>
+                          <span className="block text-[9px] text-slate-500 mt-1">{t.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-purple-100/60 pt-3 mt-3">
+                      <div className="pr-3">
+                        <span className="block text-xs font-bold text-slate-800">
+                          Símbolos de la Lluvia
+                        </span>
+                        <span className="block text-[11px] text-slate-500 leading-normal mt-0.5">
+                          Elige qué emojis caen en la animación (si está activa).
+                        </span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mt-3">
+                      {PALETAS_ANIMACION.map(a => {
+                        const actual = datos.simbolosCaida;
+                        const isSelected = actual ? actual.join(",") === a.simbolos.join(",") : a.id === "elegante";
+                        return (
+                          <button
+                            key={a.id}
+                            onClick={() => setDatos(prev => ({ ...prev, simbolosCaida: a.simbolos }))}
+                            className={`text-left p-2 rounded-lg border-2 transition cursor-pointer ${isSelected ? "border-indigo-500 bg-indigo-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
+                          >
+                            <span className="block text-base mb-0.5">{a.simbolos.join(" ")}</span>
+                            <span className="block text-[9px] font-bold text-slate-700">{a.nombre}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
                 {/* SOPORTE DE CAJON DE TEXTO / TARJETAS DETALLADAS */}
                 <div className="border-t border-slate-200 pt-6">
                   <h3 className="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
@@ -2340,56 +2395,6 @@ export default function App() {
                           {datos.mostrarAnimacionCaida !== false ? "ON" : "OFF"}
                         </span>
                       </label>
-                    </div>
-
-                    <div className="flex items-center justify-between border-t border-pink-100/60 pt-3">
-                      <div className="pr-3">
-                        <span className="block text-xs font-bold text-slate-800">
-                          Tipo de Apertura
-                        </span>
-                        <span className="block text-[11px] text-slate-500 leading-normal mt-0.5">
-                          Elige cómo se abre la invitación: tarjeta, sobre o cortina.
-                        </span>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 mt-3">
-                      {TIPOS_APERTURA.map(t => (
-                        <button
-                          key={t.id}
-                          onClick={() => setDatos(prev => ({ ...prev, tipoApertura: t.id }))}
-                          className={`text-left p-2 rounded-lg border-2 transition cursor-pointer text-center ${(datos.tipoApertura || "tarjeta") === t.id ? "border-indigo-500 bg-indigo-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
-                        >
-                          <span className="block text-xs font-bold text-slate-700">{t.nombre}</span>
-                          <span className="block text-[9px] text-slate-500 mt-1">{t.desc}</span>
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between border-t border-pink-100/60 pt-3 mt-3">
-                      <div className="pr-3">
-                        <span className="block text-xs font-bold text-slate-800">
-                          Símbolos de la Lluvia
-                        </span>
-                        <span className="block text-[11px] text-slate-500 leading-normal mt-0.5">
-                          Elige qué emojis caen en la animación (si está activa).
-                        </span>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 mt-3">
-                      {PALETAS_ANIMACION.map(a => {
-                        const actual = datos.simbolosCaida;
-                        const isSelected = actual ? actual.join(",") === a.simbolos.join(",") : a.id === "elegante";
-                        return (
-                          <button
-                            key={a.id}
-                            onClick={() => setDatos(prev => ({ ...prev, simbolosCaida: a.simbolos }))}
-                            className={`text-left p-2 rounded-lg border-2 transition cursor-pointer ${isSelected ? "border-indigo-500 bg-indigo-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
-                          >
-                            <span className="block text-base mb-0.5">{a.simbolos.join(" ")}</span>
-                            <span className="block text-[9px] font-bold text-slate-700">{a.nombre}</span>
-                          </button>
-                        );
-                      })}
                     </div>
                   </div>
                 </div>
