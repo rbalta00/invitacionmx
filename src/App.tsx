@@ -2341,6 +2341,56 @@ export default function App() {
                         </span>
                       </label>
                     </div>
+
+                    <div className="flex items-center justify-between border-t border-pink-100/60 pt-3">
+                      <div className="pr-3">
+                        <span className="block text-xs font-bold text-slate-800">
+                          Tipo de Apertura
+                        </span>
+                        <span className="block text-[11px] text-slate-500 leading-normal mt-0.5">
+                          Elige cómo se abre la invitación: tarjeta, sobre o cortina.
+                        </span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mt-3">
+                      {TIPOS_APERTURA.map(t => (
+                        <button
+                          key={t.id}
+                          onClick={() => setDatos(prev => ({ ...prev, tipoApertura: t.id }))}
+                          className={`text-left p-2 rounded-lg border-2 transition cursor-pointer text-center ${(datos.tipoApertura || "tarjeta") === t.id ? "border-indigo-500 bg-indigo-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
+                        >
+                          <span className="block text-xs font-bold text-slate-700">{t.nombre}</span>
+                          <span className="block text-[9px] text-slate-500 mt-1">{t.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-pink-100/60 pt-3 mt-3">
+                      <div className="pr-3">
+                        <span className="block text-xs font-bold text-slate-800">
+                          Símbolos de la Lluvia
+                        </span>
+                        <span className="block text-[11px] text-slate-500 leading-normal mt-0.5">
+                          Elige qué emojis caen en la animación (si está activa).
+                        </span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mt-3">
+                      {PALETAS_ANIMACION.map(a => {
+                        const actual = datos.simbolosCaida;
+                        const isSelected = actual ? actual.join(",") === a.simbolos.join(",") : a.id === "elegante";
+                        return (
+                          <button
+                            key={a.id}
+                            onClick={() => setDatos(prev => ({ ...prev, simbolosCaida: a.simbolos }))}
+                            className={`text-left p-2 rounded-lg border-2 transition cursor-pointer ${isSelected ? "border-indigo-500 bg-indigo-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
+                          >
+                            <span className="block text-base mb-0.5">{a.simbolos.join(" ")}</span>
+                            <span className="block text-[9px] font-bold text-slate-700">{a.nombre}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
@@ -3444,47 +3494,8 @@ export default function App() {
             {panelPestana === "personalizar" && (
               <div className="space-y-6 animate-fadeIn">
                 <div>
-                  <h3 className="text-sm font-semibold text-indigo-600 mb-1">Personalización de Invitación</h3>
-                  <p className="text-xs text-slate-500 mb-4">Tipo de apertura, animación decorativa, y controles de tipografía/color para el tema "Personalizado".</p>
-                </div>
-
-                {/* Tipo de Apertura (DISPONIBLE PARA TODOS LOS TEMAS) */}
-                <div>
-                  <h4 className="text-xs font-bold text-slate-700 mb-2">Tipo de Apertura</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    {TIPOS_APERTURA.map(t => (
-                      <button
-                        key={t.id}
-                        onClick={() => setDatos(prev => ({ ...prev, tipoApertura: t.id }))}
-                        className={`text-left p-3 rounded-xl border-2 transition cursor-pointer ${(datos.tipoApertura || "tarjeta") === t.id ? "border-indigo-500 bg-indigo-50/40" : "border-slate-200 bg-white hover:border-slate-300"}`}
-                      >
-                        <span className="block text-xs font-bold text-slate-700">{t.nombre}</span>
-                        <span className="block text-[10px] text-slate-500 mt-0.5">{t.desc}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Animación de Lluvia Decorativa (DISPONIBLE PARA TODOS LOS TEMAS) */}
-                <div>
-                  <h4 className="text-xs font-bold text-slate-700 mb-2">Animación de la Lluvia Decorativa</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {PALETAS_ANIMACION.map(a => {
-                      const actual = datos.simbolosCaida;
-                      const isSelected = actual ? actual.join(",") === a.simbolos.join(",") : a.id === "elegante";
-                      return (
-                        <button
-                          key={a.id}
-                          onClick={() => setDatos(prev => ({ ...prev, simbolosCaida: a.simbolos }))}
-                          className={`text-left p-2.5 rounded-xl border-2 transition cursor-pointer ${isSelected ? "border-indigo-500 bg-indigo-50/40" : "border-slate-200 bg-white hover:border-slate-300"}`}
-                        >
-                          <span className="block text-base mb-1">{a.simbolos.join(" ")}</span>
-                          <span className="block text-[10px] font-bold text-slate-700">{a.nombre}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-2">Solo se ve si "Efecto de Animación de Caída" está en ON (pestaña Tema/Paquete).</p>
+                  <h3 className="text-sm font-semibold text-indigo-600 mb-1">Invitación 100% a la Medida</h3>
+                  <p className="text-xs text-slate-500 mb-4">Tipografías y colores personalizados (solo disponible para el tema "Personalizado 🎨").</p>
                 </div>
 
                 {/* Tipografías y Colores (SOLO TEMA "PERSONALIZADO") */}
