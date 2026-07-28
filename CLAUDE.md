@@ -1,64 +1,231 @@
-# CLAUDE.md
+# CLAUDE.md — Generador de Invitaciones XV
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+**Never get lost again.** Complete routing and state management guide for the invitations generator.
 
-## Project overview
+## Project Structure
 
-"Generador de Invitaciones XV" — a single-page React app for building and sharing digital invitations for Mexican quinceañera (XV años) parties. It's built and iterated on via Google AI Studio; the codebase is a single-app Vite project with (almost) no backend of its own.
+```
+repos-activos/invitaciones-mexico/
+├── src/
+│   ├── App.tsx          (~3500 lines) — main editor UI + state management
+│   ├── types.ts         — TypeScript interfaces (InvitacionDatos, TemaConfig, etc.)
+│   ├── data.ts          — static content (12 temas, 3 paquetes, placeholder photos)
+│   ├── templates.ts     — `generarHTMLFinal(datos, tema)` — HTML string renderer for invitations
+│   ├── main.tsx         — root mount point
+│   └── index.css        — minimal styles
+├── package.json
+├── vite.config.ts
+└── .env.example
+```
 
-## Commands
+## Deployments & URLs
 
-- `npm run dev` — start Vite dev server on port 3000 (`--host=0.0.0.0`)
-- `npm run build` — production build via `vite build`
-- `npm run preview` — preview the production build
-- `npm run lint` — type-check only (`tsc --noEmit`); there is no separate lint tool configured
-- `npm run clean` — removes `dist/` and `server.js` (a stray artifact some AI Studio deploys generate at the root)
+### Production (Editor + Demo)
 
-There is no test suite in this repo.
+**Editor (Private, SSO Protected):**
+- Domain: `https://invitacionmx-generador.vercel.app`
+- Direct URL: `https://invitacionmx-generador-1plstqpk9-isaacrbs-projects.vercel.app`
+- Status: Production, alias managed by Vercel
+- Access: Team members only (Vercel SSO)
+- Last build: commit 58915da
 
-## Architecture
+**Demo (Public Read-Only):**
+- Domain: `https://invitacionmx-demo.vercel.app`
+- Status: Production
+- Access: Anyone (public)
+- `VITE_PUBLIC_DEMO_ONLY=true` blocks all editor UI, shows only catalog + view modes
 
-The app is almost entirely contained in five files under `src/`:
+## Key Features: Tipo de Apertura & Símbolos de Lluvia
 
-- `src/types.ts` — the core data shapes: `InvitacionDatos` (all invitation content: event details, ceremony/reception, itinerary, guest list, photos, theme, package, etc.), `PaqueteConfig`, `TemaConfig`.
-- `src/data.ts` — static content: the 3 `paquetes` (basico/premium/deluxe — each defines which sections are enabled and max photo count), the `temas` array (12 visual themes, each with its own font/color/gradient/custom CSS), placeholder photo sets per theme (`fotosFicticiasDefault` / `getFotosPorTema`), and `datosDefault` (default invitation data per package, used as the diffing baseline for URL state — see below).
-- `src/templates.ts` — `generarHTMLFinal(datos, tema)` builds the entire guest-facing invitation as a single self-contained HTML string (inline `<style>`/`<script>`, lightbox, countdown, opening/envelope animation, etc.). This is the actual product: everything else in the app exists to configure the object passed into this function.
-- `src/App.tsx` (~3200 lines) — the whole editor UI, plus three routing-free "modes" selected purely from URL query params (there is no router):
-  - **Editor mode** (default): full form UI for editing `InvitacionDatos`, live preview iframe, image uploads, sharing/export tools.
-  - **View mode** (`?v=1` or `?view=true`): renders `generarHTMLFinal(...)` and replaces the entire document with it — this is what a guest sees when they open a shared link.
-  - **Catalog mode** (`?catalog=true`/`?catalogo=true`, optional `&tema=<id>`): a gallery of all themes rendered via lazy-loaded iframes (`LazyIframe`), used to showcase designs before a customer buys a package.
-- `src/main.tsx` — trivial root mount.
+**CRITICAL: These controls are NOW AVAILABLE FOR ALL 12 THEMES** (as of commit 58915da).
 
-### State, sharing, and persistence
+### Where Controls Live
 
-- Invitation data (`datos`) lives in React state in `App.tsx` and is auto-persisted to `localStorage` (`xv_datos_invitacion`) on every change.
-- Shareable links encode `datos` into a compact base64 blob in the `d` URL param. `encodeState`/`decodeState` (top of `App.tsx`) diff every field against `datosDefault[paquete]` and only serialize values that differ, using short key aliases (`KEY_MAP`/`SUB_KEY_MAP`) — this keeps links short enough to avoid the ~2KB URL limit (414 errors). Any embedded base64 (`data:image`) photos/backgrounds are stripped from the encoded state and fall back to theme defaults; real sharing of custom photos relies on Cloudinary URLs instead.
-- Per-theme custom background images are separately persisted in `localStorage` under `xv_fondos_personalizados`, keyed by theme id, and merged back in regardless of which invitation is loaded.
-- Per-theme catalog customizations (design tweaks made while previewing a theme) are saved under `xv_diseño_guardado_tema_${temaId}` and take priority over the theme's canned catalog preview data.
+**File: src/App.tsx, lines ~2291-2340**
 
-### External services (no server code in this repo)
+```
+{/* TIPO DE APERTURA Y SÍMBOLOS DE LA LLUVIA */}
+<div className="border-t border-slate-200 pt-6">
+  <div className="p-4 bg-purple-50/20 border border-purple-100 rounded-xl space-y-3">
+    {/* Tipo de Apertura section */}
+    {/* Símbolos de la Lluvia section */}
+  </div>
+</div>
+```
 
-- **Cloudinary** — `subirACloudinary` uploads directly from the browser to a hardcoded cloud (`dswrrm5u1`) and unsigned preset (`invitaciones-xv`) for photos/backgrounds.
-- **Supabase** — `guardarEnSupabase` writes a row into an `invitaciones` table, and custom per-theme backgrounds (`fondos_personalizados`) are synced there too (upserted into a single row with `id: 1`) so they carry over across devices/domains, not just `localStorage`. The client is created in `App.tsx` from `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` env vars (see `.env.example`) via `@supabase/supabase-js` and exposed as `window.supabaseClient`; if those env vars are missing, it logs a warning and Supabase calls no-op.
-- **WhatsApp** — sharing/confirmation flows just build `https://api.whatsapp.com/send?phone=...&text=...` links and `window.open` them; no API integration.
-- `@google/genai` and `GEMINI_API_KEY` exist in `package.json`/`.env.example` as AI-Studio-template boilerplate but are not referenced anywhere in `src/` — treat as currently unused.
+**Location in UI:** 
+- Tab: "Tema/Paquete" (`panelPestana === "ajustes"`)
+- Placement: Between "2. Tema de la Invitación" section and "Estilo de Contenedores de Sección"
+- Visibility: Always visible, not nested inside any conditional render
 
-### Deployment: two Vercel projects from this same repo
+### Constants
 
-- **`invitacionmx-generador`** — the private editor deployment. Protected by Vercel Authentication (SSO, `ssoProtection.deploymentType: "all_except_custom_domains"`), so only team members logged into Vercel can reach it. This is where invitations actually get built/edited (and the only place with Supabase write access).
-- **`invitacionmx-demo`** — a second Vercel project linked to the *same* GitHub repo/branch, with SSO protection explicitly disabled and env var `VITE_PUBLIC_DEMO_ONLY=true` set (production/preview/development). When that env var is `"true"`, `App.tsx` blocks the editor UI entirely (see the guard right before the component's final `return`) and only serves the read-only modes: catalog (`?catalog=true`), guest view (`?v=1&d=...`), and embed (`?embed=true&tema=<id>`). This is the domain that's actually safe to hand to clients/guests — no matter what query params someone appends, the private editor never renders here.
-- `getCatalogUrl()` and `getShareUrl()` in `App.tsx` always build links against `https://invitacionmx-demo.vercel.app`, never `window.location.origin`. Don't change that back — the editor's own domain is SSO-protected, so any catalog/invitation link generated from it would 302 to a Vercel login page for anyone outside the team.
-- `vercel.json`'s `headers` sets a `Content-Security-Policy: frame-ancestors ...` allow-listing `invitacionmx-catalogo.vercel.app`, `invitacionmx-landing.vercel.app`/`invitamx.online`, and localhost dev ports. This is what lets those two sites `<iframe>` the live demo catalog (`invitacionmx-demo.vercel.app/?catalog=true`). Vercel adds `X-Frame-Options: DENY` to every deployment by default; a CSP `frame-ancestors` header overrides that for the whitelisted origins (browsers prefer CSP `frame-ancestors` over `X-Frame-Options` when both are present).
-- Gotchas when redeploying: (1) `invitacionmx-generador.vercel.app` is a manually-assigned alias, not automatic — after `vercel --prod` you must re-run `vercel alias set <new-deployment-url> invitacionmx-generador.vercel.app`, or the friendly URL keeps pointing at the old deployment; (2) this Vercel account/team appears to auto-enable SSO protection on *new* projects too — if `invitacionmx-demo` (or any future public-facing project) ever needs it off, don't assume the default is unprotected, check `ssoProtection` via the API and clear it explicitly (`PATCH /v9/projects/:id` with `{"ssoProtection": null}`) if needed.
+**File: src/App.tsx, lines ~440-455**
 
-### Adding a new theme
+```typescript
+const TIPOS_APERTURA = [
+  { id: "tarjeta", nombre: "Tarjeta 🎴", desc: "..." },
+  { id: "sobre", nombre: "Sobre 💌", desc: "..." },
+  { id: "cortina", nombre: "Cortina 🎭", desc: "..." }
+];
 
-A theme requires: an entry in `temas` in `data.ts` (colors, fonts, `customStyle` CSS, `decorativeEmoji`), a matching case in `getColorSugeridoPorTema` in `App.tsx` if it needs specific suggested dress colors, and ideally an entry in `fotosFicticiasDefault` in `data.ts` for catalog/placeholder photos. Themes with special opening-animation styling are special-cased by id inside `generarHTMLFinal` in `templates.ts` (e.g. the envelope-opening animation is only used for a specific list of theme ids).
+const PALETAS_ANIMACION = [
+  { id: "elegante", nombre: "Elegante ✨", simbolos: ["✨", "🌟", "🪙", "✨"] },
+  { id: "floral", nombre: "Floral 🌸", simbolos: ["🌸", "🌹", "🍃", "💮"] },
+  // ... 4 more palettes
+];
+```
 
-### Adding/removing a section
+### Data Structure
 
-Sections (e.g. `ceremonia`, `galeria`, `regalos`) are plain string ids listed per-package in `paquetes[...].secciones` in `data.ts`, human-labeled in `NOMBRES_SECCIONES` in `App.tsx`, individually toggleable per-invitation via `seccionesExcluidas`. Each section's HTML is a standalone `const xSeccionHTML = isSectionActive("x") ? \`...\` : "";` in `generarHTMLFinal` (`templates.ts`) — a new section needs one of these plus a matching entry in the `SECCIONES_CONTENIDO_HTML` map right below them.
+**File: src/types.ts, lines ~44-50**
 
-### Section order
+Root level properties (moved out of `personalizacion` object):
+```typescript
+tipoApertura?: "sobre" | "cortina" | "tarjeta";
+simbolosCaida?: string[];
+```
 
-`"apertura"` (opening screen) and `"cierre"` (closing footer) always render first/last. The other 14 "content" sections render in a per-invitation order: `datos.ordenSecciones` (an array of section ids) if set, else each package's default order from `paquetes[...].secciones`. `getOrdenSeccionesEfectivo(paquete, ordenSecciones)` in `data.ts` is the single source of truth for this — it validates the stored order against whatever sections the current package actually has (dropping ones no longer available, appending any missing ones at the end) — and is used both by the editor's reorder UI (`SeccionesToggleList`'s ↑/↓ buttons, `moverSeccion` in `App.tsx`) and by `generarHTMLFinal` when joining `SECCIONES_CONTENIDO_HTML` into the final output. Always go through this helper rather than reading `ordenSecciones` directly — package switches and stale/missing entries are exactly what it's meant to handle safely.
+### URL Encoding
+
+**File: src/App.tsx, KEY_MAP (lines ~79-80)**
+
+For shareable links:
+```typescript
+tipoApertura: "ta",
+simbolosCaida: "sd"
+```
+
+### Template Rendering
+
+**File: src/templates.ts:**
+- Line ~170: Uses `datos.tipoApertura` (no theme restriction)
+- Line ~1263: Uses `datos.simbolosCaida` (no theme restriction)
+
+## Core State Management (src/App.tsx)
+
+### Main State Hook
+
+```typescript
+const [datos, setDatos] = useState<InvitacionDatos>(...)
+```
+
+### Tab Navigation
+
+Controlled by `panelPestana` state:
+- `"ajustes"` — "Tema/Paquete" tab (where controls are)
+- `"quince"` — "Quinceañera"
+- `"lugares"` — "Direcciones"
+- `"itincode"` — "Agenda y Vestido"
+- `"familia"` — "Familia"
+- `"regalos"` — "Regalos"
+- `"fotos"` — "Galería de Fotos"
+- `"invitados"` — "Invitados"
+- `"personalizar"` — "A Medida" (Personalización)
+
+**Code:** Lines ~2044-2110 (tab buttons) + ~2112-2569 (content)
+
+### Conditional Rendering
+
+```typescript
+{panelPestana === "ajustes" && (
+  <div className="space-y-6">
+    {/* All Tema/Paquete content lives here */}
+  </div>
+)}
+```
+
+## The 12 Themes
+
+**File: src/data.ts, `temas` array**
+
+1. Dorado Clásico ✨
+2. Floral Acuarela 🌸
+3. Vuelo de Mariposas 🦋
+4. XV Coquette Listones Rose 🎀
+5. XV Coquette Luxe 💎
+6. Aurora Boreal 🌌
+7. Personalizado 🎨
+8. Mármol & Oro Geométrico
+9. Ciber Cyber Neon ⚡
+10. Misticus Celestial 🌙
+11. Eucalipto Botánico 🍃
+12. Glam Rose Oro 💖
+
+## The 3 Packages
+
+**File: src/data.ts, `paquetes` object**
+
+- **Básico** ($499 MXN): 4 max fotos
+- **Premium** ($799 MXN): 8 max fotos
+- **Deluxe** ($1,199 MXN): 14 max fotos
+
+Each package defines which sections are available via `paquetes[key].secciones`.
+
+## Recent Fixes (July 27, 2026)
+
+### Commit 80a1ef0
+- **Issue**: Controls were placed inside "Estilo de Contenedores de Sección" (wrong location)
+- **What happened**: Only visible when scrolling past all theme options
+- **Status**: Incomplete; code was in wrong location
+
+### Commit 58915da (Current)
+- **Fix**: Moved controls to correct location (between "Selector de Temas" and "Estilo de Contenedores")
+- **Result**: Controls now visible for ALL themes without needing to select "Personalizado"
+- **Deployment**: Promoted to Production
+- **URLs**: Active on both direct URL and alias (alias updates within 15 min of deployment)
+
+## Common Tasks
+
+### Add/Modify a Theme
+
+1. Add entry to `temas` array (src/data.ts)
+2. Add case in `getColorSugeridoPorTema` (src/App.tsx) if custom dress-color recommendations needed
+3. (Optional) Add placeholder photos to `fotosFicticiasDefault` (src/data.ts)
+4. (Optional) Add special opening-animation styling in `generarHTMLFinal` (src/templates.ts) if theme has custom animation
+
+### Add/Remove a Section
+
+1. Add/remove entry in `paquetes[key].secciones` (src/data.ts)
+2. Update `NOMBRES_SECCIONES` (src/App.tsx) with human label
+3. Add/remove `const xSeccionHTML` in `generarHTMLFinal` (src/templates.ts)
+4. Update `SECCIONES_CONTENIDO_HTML` map (src/templates.ts)
+
+### Change Section Order
+
+Users control via `datos.ordenSecciones`. Use `getOrdenSeccionesEfectivo()` (src/data.ts) for validation and fallback.
+
+## Development
+
+```bash
+npm run dev        # Vite dev server on :3000
+npm run build      # Production build → dist/
+npm run preview    # Preview production build locally
+npm run lint       # TypeScript check (tsc --noEmit, no linter)
+npm run clean      # Remove dist/ + server.js
+```
+
+## External Services
+
+- **Cloudinary**: Unsigned image uploads to cloud `dswrrm5u1`, preset `invitaciones-xv`
+- **Supabase**: Row in `invitaciones` table + shared custom backgrounds (`fondos_personalizados`)
+- **WhatsApp**: Share links via `https://api.whatsapp.com/send?phone=...&text=...`
+
+## Environment Variables
+
+See `.env.example`:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `VITE_PUBLIC_DEMO_ONLY` (true on demo.vercel.app)
+
+## Never Lose Track Again
+
+**If features stop appearing on prod:**
+1. Check deployment status on https://vercel.com/isaacrbs-projects/invitacionmx-generador/deployments
+2. If latest commit is "Ready" but not visible: alias hasn't propagated yet (5-15 min)
+3. Use direct URL (`invitacionmx-generador-1plstqpk9-isaacrbs-projects.vercel.app`) to verify code is live
+4. Check KEY_MAP (src/App.tsx line 52-81) for URL encoding of new fields
+
+**If controls disappear for a specific theme:** Check `panelPestana === "ajustes"` conditional render chain — controls must be outside any theme-specific condition.
+
+**If new state fields don't serialize in shareable links:** Add to KEY_MAP with short alias (e.g., `newFeature: "nf"`).

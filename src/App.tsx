@@ -3900,7 +3900,7 @@ export default function App() {
               <p className="text-sm text-slate-500 py-8 text-center">No hay fondos guardados aún. Sube fondos para cada tema.</p>
             ) : (
               <div className="space-y-3">
-                {Object.entries(datos.bgImages || {}).map(([temaId, url]) => {
+                {Object.entries(datos.bgImages ?? ({} as Record<string, string>)).map(([temaId, url]) => {
                   const tema = temas.find(t => t.id === temaId);
                   return (
                     <div key={temaId} className="border border-slate-200 rounded-xl p-4 bg-slate-50">
@@ -3911,7 +3911,7 @@ export default function App() {
                         </div>
                         <button
                           onClick={() => {
-                            navigator.clipboard.writeText(url);
+                            navigator.clipboard.writeText(url as string);
                             mostrarToast(`Link copiado: ${tema?.nombre}`, "success");
                           }}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-[10px] font-semibold rounded-lg transition whitespace-nowrap shrink-0"
