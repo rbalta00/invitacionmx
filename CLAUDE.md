@@ -229,3 +229,11 @@ See `.env.example`:
 **If controls disappear for a specific theme:** Check `panelPestana === "ajustes"` conditional render chain — controls must be outside any theme-specific condition.
 
 **If new state fields don't serialize in shareable links:** Add to KEY_MAP with short alias (e.g., `newFeature: "nf"`).
+
+## Publicar cambios (deploy)
+
+- Repo: `rbalta00/invitacionmx`, rama `main`. Vercel: proyecto `invitacionmx-generador` (framework Vite) -> https://invitacionmx-generador-isaacrbs-projects.vercel.app (conectado a GitHub).
+- **Auto-deploy**: un `git push` a `main` ya dispara el deploy en Vercel solo, no hace falta correr nada mas.
+- Nota: NO confundir con el repo `invitamx` (otro repo distinto, privado) ni con el proyecto Vercel `invitamx`.
+- Atajo: `.\deploy.ps1 "mensaje"` en la raiz del repo hace `git add` + `commit` + `push` en un solo paso.
+- Convencion con el usuario: cuando pida "guardar", "subir" o "publicar" este repo, correr el flujo completo sin preguntar el alcance (ver tambien `D:\repos-activos\SETUP.md` si existe esa carpeta).
